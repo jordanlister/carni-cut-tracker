@@ -11,6 +11,9 @@ export default function TrainingSchedule() {
 
   if (!todayChecklist) return null;
 
+  // Ensure calorieEntries exists to prevent hydration errors
+  const calorieEntries = todayChecklist.calorieEntries || [];
+
   const workoutDays = [
     { day: 'MON', title: 'Full-body HIIT or 30-min brisk walk' },
     { day: 'TUE', title: 'Gym: Upper body push/pull', subtitle: 'OR 20-min HIIT circuit' },
@@ -159,18 +162,18 @@ export default function TrainingSchedule() {
             <div className="mb-4">
               <div className="flex justify-between text-sm mb-2">
                 <span className="font-semibold">
-                  {todayChecklist.calorieEntries.reduce((sum, entry) => sum + entry.amount, 0)} cal
+                  {calorieEntries.reduce((sum, entry) => sum + entry.amount, 0)} cal
                 </span>
                 <span className="text-neutral-500">Target: 1,500-1,700 cal</span>
               </div>
               <div className="bg-neutral-200 h-3 rounded-full overflow-hidden">
                 <div
                   className={`h-full transition-all duration-300 ${
-                    todayChecklist.calorieEntries.reduce((sum, entry) => sum + entry.amount, 0) > 1700 ? 'bg-red-600' :
-                    todayChecklist.calorieEntries.reduce((sum, entry) => sum + entry.amount, 0) >= 1500 ? 'bg-green-600' :
+                    calorieEntries.reduce((sum, entry) => sum + entry.amount, 0) > 1700 ? 'bg-red-600' :
+                    calorieEntries.reduce((sum, entry) => sum + entry.amount, 0) >= 1500 ? 'bg-green-600' :
                     'bg-orange-600'
                   }`}
-                  style={{ width: `${Math.min((todayChecklist.calorieEntries.reduce((sum, entry) => sum + entry.amount, 0) / 1700) * 100, 100)}%` }}
+                  style={{ width: `${Math.min((calorieEntries.reduce((sum, entry) => sum + entry.amount, 0) / 1700) * 100, 100)}%` }}
                 />
               </div>
             </div>
@@ -209,10 +212,10 @@ export default function TrainingSchedule() {
 
             {/* Calorie Entries List */}
             <div className="space-y-2 max-h-48 overflow-y-auto">
-              {todayChecklist.calorieEntries.length === 0 ? (
+              {calorieEntries.length === 0 ? (
                 <p className="text-sm text-neutral-500 text-center py-4">No calories logged yet today</p>
               ) : (
-                todayChecklist.calorieEntries.map((entry) => (
+                calorieEntries.map((entry) => (
                   <div key={entry.id} className="flex items-center justify-between p-3 bg-neutral-50 border border-neutral-200">
                     <div className="flex-1">
                       <div className="font-bold">{entry.amount} cal</div>

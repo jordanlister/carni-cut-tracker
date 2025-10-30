@@ -36,7 +36,10 @@ export default function HistoryView() {
 
       <div className="max-w-4xl mx-auto p-4 space-y-4">
         {[...allDays].reverse().map((day, index) => {
-          const totalCalories = day.calorieEntries.reduce((sum, entry) => sum + entry.amount, 0);
+          // Ensure properties exist to prevent hydration errors
+          const calorieEntries = day.calorieEntries || [];
+          const meals = day.meals || [];
+          const totalCalories = calorieEntries.reduce((sum, entry) => sum + entry.amount, 0);
           const isToday = index === 0;
 
           return (
@@ -80,7 +83,7 @@ export default function HistoryView() {
                 <div className="text-center p-3 bg-neutral-50 border border-neutral-200">
                   <Utensils className="w-5 h-5 mx-auto mb-1 text-green-600" />
                   <div className="text-lg font-bold">
-                    {day.meals.reduce((sum, meal) => sum + meal.items.filter(i => i.completed).length, 0)}
+                    {meals.reduce((sum, meal) => sum + (meal.items?.filter(i => i.completed).length || 0), 0)}
                   </div>
                   <div className="text-xs text-neutral-600">Meals</div>
                 </div>
@@ -94,11 +97,11 @@ export default function HistoryView() {
               </div>
 
               {/* Calorie Entries */}
-              {day.calorieEntries.length > 0 && (
+              {calorieEntries.length > 0 && (
                 <div className="mb-4">
                   <h4 className="font-bold text-sm mb-2">CALORIE LOG</h4>
                   <div className="space-y-1">
-                    {day.calorieEntries.map((entry) => (
+                    {calorieEntries.map((entry) => (
                       <div key={entry.id} className="flex justify-between items-center text-sm p-2 bg-neutral-50">
                         <div>
                           <span className="font-bold">{entry.amount} cal</span>
