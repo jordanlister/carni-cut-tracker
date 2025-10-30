@@ -4,7 +4,7 @@ import { useStore } from '@/lib/store';
 import { Dumbbell, Sunrise, Sunset, Droplets, Coffee } from 'lucide-react';
 
 export default function TrainingSchedule() {
-  const { todayChecklist, toggleWorkout, updateWaterIntake } = useStore();
+  const { todayChecklist, toggleWorkout, updateWaterIntake, updateCalories } = useStore();
 
   if (!todayChecklist) return null;
 
@@ -103,7 +103,7 @@ export default function TrainingSchedule() {
           </div>
         </div>
 
-        {/* Water & Energy Tracking */}
+        {/* Water & Calorie Tracking */}
         <div className="grid md:grid-cols-2 gap-6">
           <div className="bg-white border-2 border-black p-6">
             <div className="flex items-center gap-3 mb-4">
@@ -148,26 +148,63 @@ export default function TrainingSchedule() {
 
           <div className="bg-white border-2 border-black p-6">
             <div className="flex items-center gap-3 mb-4">
-              <Coffee className="w-6 h-6" />
-              <h3 className="text-lg font-bold">DAILY REMINDERS</h3>
+              <Coffee className="w-6 h-6 text-orange-600" />
+              <h3 className="text-lg font-bold">CALORIE TRACKER</h3>
             </div>
-            <div className="space-y-3 text-sm">
-              <div className="flex items-start gap-2">
-                <div className="w-2 h-2 bg-black rounded-full mt-1.5" />
-                <div>1 gallon water/day minimum</div>
+
+            <div className="mb-4">
+              <div className="flex justify-between text-sm mb-2">
+                <span className="font-semibold">{todayChecklist.caloriesConsumed} cal</span>
+                <span className="text-neutral-500">Target: 1,500-1,700 cal</span>
               </div>
-              <div className="flex items-start gap-2">
-                <div className="w-2 h-2 bg-black rounded-full mt-1.5" />
-                <div>Add electrolytes (LMNT or pink salt + lemon)</div>
+              <div className="bg-neutral-200 h-3 rounded-full overflow-hidden">
+                <div
+                  className={`h-full transition-all duration-300 ${
+                    todayChecklist.caloriesConsumed > 1700 ? 'bg-red-600' :
+                    todayChecklist.caloriesConsumed >= 1500 ? 'bg-green-600' :
+                    'bg-orange-600'
+                  }`}
+                  style={{ width: `${Math.min((todayChecklist.caloriesConsumed / 1700) * 100, 100)}%` }}
+                />
               </div>
-              <div className="flex items-start gap-2">
-                <div className="w-2 h-2 bg-black rounded-full mt-1.5" />
-                <div>1-2 cups black coffee max per day (early only)</div>
-              </div>
-              <div className="flex items-start gap-2">
-                <div className="w-2 h-2 bg-black rounded-full mt-1.5" />
-                <div>No alcohol, soda, or sugar</div>
-              </div>
+            </div>
+
+            <input
+              type="number"
+              value={todayChecklist.caloriesConsumed || ''}
+              onChange={(e) => updateCalories(parseInt(e.target.value) || 0)}
+              placeholder="Enter calories"
+              className="w-full px-4 py-2 border-2 border-black focus:outline-none focus:ring-2 focus:ring-black text-center font-bold text-lg"
+            />
+
+            <p className="text-xs text-neutral-500 mt-3 text-center">
+              Track your daily calorie intake
+            </p>
+          </div>
+        </div>
+
+        {/* Daily Reminders */}
+        <div className="bg-white border-2 border-black p-6 mt-6">
+          <div className="flex items-center gap-3 mb-4">
+            <Coffee className="w-6 h-6" />
+            <h3 className="text-lg font-bold">DAILY REMINDERS</h3>
+          </div>
+          <div className="grid md:grid-cols-2 gap-3 text-sm">
+            <div className="flex items-start gap-2">
+              <div className="w-2 h-2 bg-black rounded-full mt-1.5" />
+              <div>1 gallon water/day minimum</div>
+            </div>
+            <div className="flex items-start gap-2">
+              <div className="w-2 h-2 bg-black rounded-full mt-1.5" />
+              <div>Add electrolytes (LMNT or pink salt + lemon)</div>
+            </div>
+            <div className="flex items-start gap-2">
+              <div className="w-2 h-2 bg-black rounded-full mt-1.5" />
+              <div>1-2 cups black coffee max per day (early only)</div>
+            </div>
+            <div className="flex items-start gap-2">
+              <div className="w-2 h-2 bg-black rounded-full mt-1.5" />
+              <div>No alcohol, soda, or sugar</div>
             </div>
           </div>
         </div>

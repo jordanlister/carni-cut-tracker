@@ -2,10 +2,10 @@
 
 import { useState } from 'react';
 import { useStore } from '@/lib/store';
-import { RotateCcw, AlertTriangle } from 'lucide-react';
+import { RotateCcw, AlertTriangle, Download, FileText } from 'lucide-react';
 
 export default function Footer() {
-  const { resetAllProgress } = useStore();
+  const { resetAllProgress, exportToCSV, exportToPDF } = useStore();
   const [showConfirm, setShowConfirm] = useState(false);
 
   const handleReset = () => {
@@ -15,7 +15,33 @@ export default function Footer() {
 
   return (
     <div className="bg-neutral-50 p-6 md:p-8">
-      <div className="max-w-6xl mx-auto text-center">
+      <div className="max-w-6xl mx-auto">
+        {/* Export Buttons */}
+        <div className="mb-8">
+          <h3 className="text-lg font-bold mb-4 text-center">EXPORT YOUR PROGRESS</h3>
+          <div className="flex flex-col md:flex-row gap-4 justify-center">
+            <button
+              onClick={exportToCSV}
+              className="px-6 py-3 bg-green-600 text-white font-bold hover:bg-green-700 transition-all flex items-center gap-2 justify-center"
+            >
+              <Download className="w-5 h-5" />
+              DOWNLOAD CSV
+            </button>
+            <button
+              onClick={exportToPDF}
+              className="px-6 py-3 bg-blue-600 text-white font-bold hover:bg-blue-700 transition-all flex items-center gap-2 justify-center"
+            >
+              <FileText className="w-5 h-5" />
+              PRINT/SAVE PDF
+            </button>
+          </div>
+          <p className="text-sm text-neutral-600 mt-3 text-center">
+            Export all your weight data, progress, and notes
+          </p>
+        </div>
+
+        {/* Reset Section */}
+        <div className="text-center border-t-2 border-neutral-200 pt-8">
         {!showConfirm ? (
           <button
             onClick={() => setShowConfirm(true)}
@@ -49,8 +75,9 @@ export default function Footer() {
             </div>
           </div>
         )}
+        </div>
 
-        <div className="mt-8 text-sm text-neutral-500">
+        <div className="mt-8 text-sm text-neutral-500 text-center">
           <p>Carni-Cut Protocol © 2024 | Track your progress, achieve your goals</p>
         </div>
       </div>

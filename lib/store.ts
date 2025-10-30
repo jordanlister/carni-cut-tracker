@@ -48,6 +48,7 @@ const createDefaultDailyChecklist = (): DailyChecklist => ({
   morningWorkout: false,
   eveningWorkout: false,
   waterIntake: 0,
+  caloriesConsumed: 0,
   notes: '',
 });
 
@@ -135,6 +136,19 @@ export const useStore = create<AppState>()(
         });
       },
 
+      updateCalories: (calories: number) => {
+        set((state) => {
+          if (!state.todayChecklist) return state;
+
+          return {
+            todayChecklist: {
+              ...state.todayChecklist,
+              caloriesConsumed: Math.max(0, calories),
+            },
+          };
+        });
+      },
+
       updateDailyNote: (note: string) => {
         set((state) => {
           if (!state.todayChecklist) return state;
@@ -175,6 +189,122 @@ export const useStore = create<AppState>()(
           todayChecklist: createDefaultDailyChecklist(),
           lastResetDate: today,
         });
+      },
+
+      exportToCSV: () => {
+        const state = get();
+        const rows = [
+          ['Carni-Cut Protocol - Progress Report'],
+          [''],
+          ['Weight Progress'],
+          ['Date', 'Weight (lbs)', 'Notes'],
+          ...state.weightEntries.map((entry) => [
+            entry.date,
+            entry.weight.toString(),
+            entry.note || '',
+          ]),
+          [''],
+          ['Summary'],
+          ['Starting Weight', state.startWeight.toString()],
+          ['Current Weight', (state.weightEntries[state.weightEntries.length - 1]?.weight || state.startWeight).toString()],
+          ['Goal Weight', state.goalWeight.toString()],
+          ['Current Day', state.currentDay.toString()],
+        ];
+
+        const csvContent = rows.map((row) => row.join(',')).join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `carni-cut-progress-${format(new Date(), 'yyyy-MM-dd')}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      },
+
+      exportToPDF: () => {
+        const state = get();
+        const currentWeight = state.weightEntries[state.weightEntries.length - 1]?.weight || state.startWeight;
+        const totalLoss = state.startWeight - currentWeight;
+
+        // Create a printable HTML page
+        const printWindow = window.open('', '_blank');
+        if (!printWindow) return;
+
+        printWindow.document.write(`
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <title>Carni-Cut Progress Report</title>
+              <style>
+                body { font-family: Arial, sans-serif; padding: 40px; max-width: 800px; margin: 0 auto; }
+                h1 { text-align: center; border-bottom: 3px solid #000; padding-bottom: 10px; }
+                h2 { margin-top: 30px; border-bottom: 2px solid #000; padding-bottom: 5px; }
+                table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+                th, td { border: 1px solid #000; padding: 10px; text-align: left; }
+                th { background: #000; color: #fff; }
+                .summary { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0; }
+                .stat-box { border: 2px solid #000; padding: 20px; text-align: center; }
+                .stat-label { font-size: 0.9em; color: #666; margin-bottom: 5px; }
+                .stat-value { font-size: 2em; font-weight: bold; }
+                @media print { body { padding: 20px; } }
+              </style>
+            </head>
+            <body>
+              <h1>CARNI-CUT PROTOCOL</h1>
+              <h2>Progress Report - ${format(new Date(), 'MMMM dd, yyyy')}</h2>
+
+              <div class="summary">
+                <div class="stat-box">
+                  <div class="stat-label">Starting Weight</div>
+                  <div class="stat-value">${state.startWeight} lbs</div>
+                </div>
+                <div class="stat-box">
+                  <div class="stat-label">Current Weight</div>
+                  <div class="stat-value">${currentWeight} lbs</div>
+                </div>
+                <div class="stat-box">
+                  <div class="stat-label">Total Loss</div>
+                  <div class="stat-value">${totalLoss.toFixed(1)} lbs</div>
+                </div>
+                <div class="stat-box">
+                  <div class="stat-label">Days Completed</div>
+                  <div class="stat-value">${state.currentDay}</div>
+                </div>
+              </div>
+
+              <h2>Weight History</h2>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Weight (lbs)</th>
+                    <th>Notes</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${state.weightEntries.map((entry) => `
+                    <tr>
+                      <td>${format(new Date(entry.date), 'MMM dd, yyyy')}</td>
+                      <td><strong>${entry.weight}</strong></td>
+                      <td>${entry.note || '-'}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+
+              <p style="margin-top: 40px; text-align: center; color: #666;">
+                Generated by Carni-Cut Tracker | ${format(new Date(), 'MMMM dd, yyyy HH:mm')}
+              </p>
+            </body>
+          </html>
+        `);
+
+        printWindow.document.close();
+        setTimeout(() => {
+          printWindow.print();
+        }, 250);
       },
     }),
     {

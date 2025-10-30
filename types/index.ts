@@ -30,6 +30,7 @@ export interface DailyChecklist {
   morningWorkout: boolean;
   eveningWorkout: boolean;
   waterIntake: number; // in oz
+  caloriesConsumed: number;
   notes: string;
 }
 
@@ -51,8 +52,11 @@ export interface AppState {
   toggleMealItem: (mealId: string, itemId: string) => void;
   toggleWorkout: (type: 'morning' | 'evening') => void;
   updateWaterIntake: (amount: number) => void;
+  updateCalories: (calories: number) => void;
   updateDailyNote: (note: string) => void;
   resetDailyChecklist: () => void;
   resetAllProgress: () => void;
   checkMidnightReset: () => void;
+  exportToCSV: () => void;
+  exportToPDF: () => void;
 }
