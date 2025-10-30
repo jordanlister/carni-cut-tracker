@@ -24,14 +24,25 @@ export interface WorkoutDay {
   completed: boolean;
 }
 
+export interface CalorieEntry {
+  id: string;
+  time: string;
+  amount: number;
+  note?: string;
+}
+
 export interface DailyChecklist {
   date: string;
   meals: MealSection[];
   morningWorkout: boolean;
   eveningWorkout: boolean;
   waterIntake: number; // in oz
-  caloriesConsumed: number;
+  calorieEntries: CalorieEntry[];
   notes: string;
+}
+
+export interface DayHistory extends DailyChecklist {
+  weightEntry?: WeightEntry;
 }
 
 export interface AppState {
@@ -45,6 +56,7 @@ export interface AppState {
   // Daily tracking
   todayChecklist: DailyChecklist | null;
   lastResetDate: string;
+  dayHistory: DayHistory[];
 
   // Actions
   addWeightEntry: (weight: number, note?: string) => void;
@@ -52,7 +64,8 @@ export interface AppState {
   toggleMealItem: (mealId: string, itemId: string) => void;
   toggleWorkout: (type: 'morning' | 'evening') => void;
   updateWaterIntake: (amount: number) => void;
-  updateCalories: (calories: number) => void;
+  addCalorieEntry: (amount: number, note?: string) => void;
+  deleteCalorieEntry: (id: string) => void;
   updateDailyNote: (note: string) => void;
   resetDailyChecklist: () => void;
   resetAllProgress: () => void;

@@ -48,7 +48,7 @@ const createDefaultDailyChecklist = (): DailyChecklist => ({
   morningWorkout: false,
   eveningWorkout: false,
   waterIntake: 0,
-  caloriesConsumed: 0,
+  calorieEntries: [],
   notes: '',
 });
 
@@ -63,6 +63,7 @@ export const useStore = create<AppState>()(
       startDate: format(new Date(), 'yyyy-MM-dd'),
       todayChecklist: createDefaultDailyChecklist(),
       lastResetDate: format(new Date(), 'yyyy-MM-dd'),
+      dayHistory: [],
 
       // Actions
       addWeightEntry: (weight: number, note?: string) => {
@@ -136,14 +137,34 @@ export const useStore = create<AppState>()(
         });
       },
 
-      updateCalories: (calories: number) => {
+      addCalorieEntry: (amount: number, note?: string) => {
+        set((state) => {
+          if (!state.todayChecklist) return state;
+
+          const newEntry = {
+            id: Date.now().toString(),
+            time: format(new Date(), 'HH:mm'),
+            amount,
+            note,
+          };
+
+          return {
+            todayChecklist: {
+              ...state.todayChecklist,
+              calorieEntries: [...state.todayChecklist.calorieEntries, newEntry],
+            },
+          };
+        });
+      },
+
+      deleteCalorieEntry: (id: string) => {
         set((state) => {
           if (!state.todayChecklist) return state;
 
           return {
             todayChecklist: {
               ...state.todayChecklist,
-              caloriesConsumed: Math.max(0, calories),
+              calorieEntries: state.todayChecklist.calorieEntries.filter((entry) => entry.id !== id),
             },
           };
         });
@@ -171,9 +192,26 @@ export const useStore = create<AppState>()(
 
       checkMidnightReset: () => {
         const today = format(new Date(), 'yyyy-MM-dd');
-        const { lastResetDate } = get();
+        const state = get();
 
-        if (lastResetDate !== today) {
+        if (state.lastResetDate !== today) {
+          // Save yesterday's data to history
+          if (state.todayChecklist) {
+            const yesterdayWeight = state.weightEntries.find(
+              (entry) => entry.date === state.lastResetDate
+            );
+
+            const historyEntry = {
+              ...state.todayChecklist,
+              weightEntry: yesterdayWeight,
+            };
+
+            set({
+              dayHistory: [...state.dayHistory, historyEntry],
+            });
+          }
+
+          // Reset for new day
           get().resetDailyChecklist();
         }
       },

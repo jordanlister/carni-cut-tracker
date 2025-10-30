@@ -1,10 +1,13 @@
 'use client';
 
+import { useState } from 'react';
 import { useStore } from '@/lib/store';
-import { Dumbbell, Sunrise, Sunset, Droplets, Coffee } from 'lucide-react';
+import { Dumbbell, Sunrise, Sunset, Droplets, Coffee, Plus, Trash2 } from 'lucide-react';
 
 export default function TrainingSchedule() {
-  const { todayChecklist, toggleWorkout, updateWaterIntake, updateCalories } = useStore();
+  const { todayChecklist, toggleWorkout, updateWaterIntake, addCalorieEntry, deleteCalorieEntry } = useStore();
+  const [calorieAmount, setCalorieAmount] = useState('');
+  const [calorieNote, setCalorieNote] = useState('');
 
   if (!todayChecklist) return null;
 
@@ -152,34 +155,80 @@ export default function TrainingSchedule() {
               <h3 className="text-lg font-bold">CALORIE TRACKER</h3>
             </div>
 
+            {/* Total Calories */}
             <div className="mb-4">
               <div className="flex justify-between text-sm mb-2">
-                <span className="font-semibold">{todayChecklist.caloriesConsumed} cal</span>
+                <span className="font-semibold">
+                  {todayChecklist.calorieEntries.reduce((sum, entry) => sum + entry.amount, 0)} cal
+                </span>
                 <span className="text-neutral-500">Target: 1,500-1,700 cal</span>
               </div>
               <div className="bg-neutral-200 h-3 rounded-full overflow-hidden">
                 <div
                   className={`h-full transition-all duration-300 ${
-                    todayChecklist.caloriesConsumed > 1700 ? 'bg-red-600' :
-                    todayChecklist.caloriesConsumed >= 1500 ? 'bg-green-600' :
+                    todayChecklist.calorieEntries.reduce((sum, entry) => sum + entry.amount, 0) > 1700 ? 'bg-red-600' :
+                    todayChecklist.calorieEntries.reduce((sum, entry) => sum + entry.amount, 0) >= 1500 ? 'bg-green-600' :
                     'bg-orange-600'
                   }`}
-                  style={{ width: `${Math.min((todayChecklist.caloriesConsumed / 1700) * 100, 100)}%` }}
+                  style={{ width: `${Math.min((todayChecklist.calorieEntries.reduce((sum, entry) => sum + entry.amount, 0) / 1700) * 100, 100)}%` }}
                 />
               </div>
             </div>
 
-            <input
-              type="number"
-              value={todayChecklist.caloriesConsumed || ''}
-              onChange={(e) => updateCalories(parseInt(e.target.value) || 0)}
-              placeholder="Enter calories"
-              className="w-full px-4 py-2 border-2 border-black focus:outline-none focus:ring-2 focus:ring-black text-center font-bold text-lg"
-            />
+            {/* Add Calorie Entry */}
+            <div className="mb-4 space-y-2">
+              <input
+                type="number"
+                value={calorieAmount}
+                onChange={(e) => setCalorieAmount(e.target.value)}
+                placeholder="Calories"
+                className="w-full px-4 py-2 border-2 border-black focus:outline-none focus:ring-2 focus:ring-black text-center font-bold"
+              />
+              <input
+                type="text"
+                value={calorieNote}
+                onChange={(e) => setCalorieNote(e.target.value)}
+                placeholder="What did you eat? (optional)"
+                className="w-full px-4 py-2 border-2 border-black focus:outline-none focus:ring-2 focus:ring-black"
+              />
+              <button
+                onClick={() => {
+                  const amount = parseInt(calorieAmount);
+                  if (amount && amount > 0) {
+                    addCalorieEntry(amount, calorieNote || undefined);
+                    setCalorieAmount('');
+                    setCalorieNote('');
+                  }
+                }}
+                className="w-full px-4 py-2 bg-orange-600 text-white font-bold hover:bg-orange-700 transition-colors flex items-center gap-2 justify-center"
+              >
+                <Plus className="w-5 h-5" />
+                ADD CALORIES
+              </button>
+            </div>
 
-            <p className="text-xs text-neutral-500 mt-3 text-center">
-              Track your daily calorie intake
-            </p>
+            {/* Calorie Entries List */}
+            <div className="space-y-2 max-h-48 overflow-y-auto">
+              {todayChecklist.calorieEntries.length === 0 ? (
+                <p className="text-sm text-neutral-500 text-center py-4">No calories logged yet today</p>
+              ) : (
+                todayChecklist.calorieEntries.map((entry) => (
+                  <div key={entry.id} className="flex items-center justify-between p-3 bg-neutral-50 border border-neutral-200">
+                    <div className="flex-1">
+                      <div className="font-bold">{entry.amount} cal</div>
+                      {entry.note && <div className="text-sm text-neutral-600">{entry.note}</div>}
+                      <div className="text-xs text-neutral-400">{entry.time}</div>
+                    </div>
+                    <button
+                      onClick={() => deleteCalorieEntry(entry.id)}
+                      className="p-2 hover:bg-red-100 text-red-600 transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </div>
 
